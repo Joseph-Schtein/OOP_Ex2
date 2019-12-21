@@ -89,6 +89,7 @@ public class Graph_Algo implements graph_algorithms{
 	public double shortestPathDist(int src, int dest) {
 		
 		if(src==dest) {
+			
 			return algo.getNode(dest).getWeight();
 		}
 	
@@ -99,18 +100,22 @@ public class Graph_Algo implements graph_algorithms{
 		LinkedList<edge_data> srcEdge = (LinkedList<edge_data>) algo.getE(src);
 		for(edge_data e: srcEdge) {
 			node_data next = algo.getNode(e.getDest());
-			if(source.getWeight() == Double.MAX_VALUE) 
-				source.setWeight(0);
+			if(next.getTag()==0) {	
+				if(source.getWeight() == Double.MAX_VALUE) 
+					source.setWeight(0);
 				
-			if(e.getWeight()+source.getWeight()< next.getWeight())
-				next.setWeight(e.getWeight()+source.getWeight());
+				double test = e.getWeight()+source.getWeight();
+				
+				if(e.getWeight()+source.getWeight()< next.getWeight())
+					next.setWeight(e.getWeight()+source.getWeight());
 			
-			double tmp = shortestPathDist(e.getDest(), dest);
-			if(tmp < output) {
-				output = tmp;
-				String n = ((Integer)source.getKey()).toString();
-				next.setInfo(n);
-			}
+				double tmp = shortestPathDist(e.getDest(), dest);
+				if(tmp < output && tmp>=test) {
+					output = tmp;
+					String n = ((Integer)source.getKey()).toString();
+					next.setInfo(n);
+				}
+			}	
 		}
 		source.setTag(2);
 		
@@ -120,21 +125,25 @@ public class Graph_Algo implements graph_algorithms{
 	@Override
 	public List<node_data> shortestPath(int src, int dest) {
 		
-		shortestPathDist(src,dest);
-		node_data destination = algo.getNode(dest);
-		int previous = Integer.parseInt(destination.getInfo());
-		LinkedList<node_data> output = new LinkedList<>();
-		output.addFirst(destination);
+		double check = shortestPathDist(src,dest);
+		if(check < Double.MAX_VALUE) {	
+			node_data destination = algo.getNode(dest);
+			int previous = Integer.parseInt(destination.getInfo());
+			LinkedList<node_data> output = new LinkedList<>();
+			output.addFirst(destination);
 		
-		while(src != previous) {
-			node_data pre = algo.getNode(previous);
-			output.addFirst(pre);
-			previous = Integer.parseInt(pre.getInfo());
-			pre = algo.getNode(previous);
+			while(src != previous) {
+				node_data pre = algo.getNode(previous);
+				output.addFirst(pre);
+				previous = Integer.parseInt(pre.getInfo());
+				pre = algo.getNode(previous);
+			}
+			node_data source = algo.getNode(src);
+			output.addFirst(source);
+			return output;
 		}
-		node_data source = algo.getNode(src);
-		output.addFirst(source);
-		return output;
+		
+		throw new RuntimeException("there is no path for those source destnation");
 	}
 
 	@Override
@@ -146,19 +155,29 @@ public class Graph_Algo implements graph_algorithms{
 			int source = (int)iter.next();
 			while(iter.hasNext()) {
 				int nextDest = (int)iter.next();
-				List<node_data> tmp = shortestPath(source, nextDest);
+				LinkedList<node_data> tmp = (LinkedList<node_data>) shortestPath(source, nextDest);
 				reSet();
-				int place = output.size();
-				for(node_data v : tmp) {
-					output.add(place,v);
+				for(node_data v : tmp) { 
+					output.addLast(v);
 				}
+				
 				source = nextDest;
 			}
 		}
 		
-		else
+		else {
 			return null;
-		
+		}
+		node_data current  = output.getFirst();
+		int index = 1;
+		while(index < output.size() - targets.size()+1) {
+			node_data next = output.get(index);
+			if(current.getKey() == next.getKey()) {
+				output.remove(next);
+			}
+			current = next;
+			index++;
+		}
 		return output;
 	}
 
