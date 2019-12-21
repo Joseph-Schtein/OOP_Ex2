@@ -1,109 +1,140 @@
 package dataStructure;
 
-import java.util.ArrayList;
+
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 
 
+
 public class DGraph implements graph{
-	
-	private Collection<LinkedList<node_data>> graph;
-	private ArrayList<node_data> VertexSet;
-	private ArrayList<edge_data> EdgeSet;
-	
-	public DGraph (){
-		graph = new ArrayList<LinkedList<node_data>>();
-		VertexSet = new ArrayList<node_data>();
-		EdgeSet = new ArrayList<edge_data>();
+
+	private HashMap<node_data, LinkedList<edge_data>> graph;
+    private HashMap<Integer, node_data> indexs;
+    private LinkedList<node_data> VertexSet;
+    private int numOfVertex;
+    private int numOfEdges;
+	private int changePreform;
+    
+	public DGraph(){
+		graph = new HashMap<node_data, LinkedList<edge_data>>();
+		indexs = new HashMap<Integer, node_data>();
+		VertexSet = new LinkedList<node_data>();
+		numOfVertex = 0;
+		numOfEdges = 0;
+		changePreform = 0;
 	}
-	
+
 	@Override
 	public node_data getNode(int key) {
-		Iterator<node_data> iter = VertexSet.iterator();
-		node_data output = null;
-		boolean found = false;
-		while(iter.hasNext() && !found) {
-			node_data next = iter.next();
-			if(key == next.getKey()) {
-				output = next;
-				found = true;
-			}
-		}
-		return output;
+		return indexs.get(key);
 	}
 
 	@Override
 	public edge_data getEdge(int src, int dest) {
-		Iterator<edge_data> iter = EdgeSet.iterator();
-		edge_data output = null;
-		boolean found = false;
-		while(iter.hasNext() && !found) {
-			edge_data next = iter.next();
-			if(src == next.getSrc() && dest == next.getDest()) {
-				output = next;
-				found = true;
+		node_data source = indexs.get(src);
+		LinkedList<edge_data> edges = graph.get(source);
+		edge_data output =  null;
+		for(edge_data e : edges) {
+			if(e.getDest() == dest) {
+				output = e;
 			}
 		}
+		
 		return output;
 	}
 
 	@Override
 	public void addNode(node_data n) {
-		VertexSet.add(n);
-		LinkedList<node_data> toAdd = new LinkedList<node_data>();
-		toAdd.add(n);
-		graph.add(toAdd);
+		indexs.put(n.getKey(), n);
+		graph.put(n, new LinkedList<edge_data>());
+		VertexSet.addFirst(n);
+		numOfVertex++;
+		changePreform++;
 	}
 
 	@Override
 	public void connect(int src, int dest, double w) {
-		node_data source = getNode(src);
-		node_data destination = getNode(dest);
-		//edge_data toAdd = new Edge ()
+		node_data source = indexs.get(src);
+		node_data destination = indexs.get(dest);
+		
+		LinkedList<edge_data> edges = graph.get(source);
+		edge_data newEdge = new Edge(source, destination, w);
+		edges.addFirst(newEdge);
+		numOfEdges++;
+		changePreform++;
 	}
 
 	@Override
 	public Collection<node_data> getV() {
-		// TODO Auto-generated method stub
-		return null;
+		return VertexSet;
 	}
 
 	@Override
 	public Collection<edge_data> getE(int node_id) {
-		// TODO Auto-generated method stub
-		return null;
+		node_data tmp = indexs.get(node_id); 
+		LinkedList<edge_data> output = graph.get(tmp);
+		return output;
 	}
 
 	@Override
 	public node_data removeNode(int key) {
-		// TODO Auto-generated method stub
-		return null;
+		node_data toRemove = indexs.get(key); 
+		indexs.remove(key,toRemove);
+		VertexSet.remove(toRemove);
+		LinkedList<edge_data> tmp = graph.remove(toRemove);
+		numOfEdges = numOfEdges - tmp.size();
+		changePreform = changePreform+tmp.size(); 
+		numOfVertex--;
+		
+		for(node_data ver : VertexSet) {		
+			LinkedList<edge_data> curSrc = graph.get(ver);
+			for(edge_data e : curSrc) {
+				if(e.getDest() == key) {
+					curSrc.remove(e);
+					numOfEdges--;
+					changePreform++;
+				}
+			}
+		}
+		
+		return toRemove;
 	}
 
 	@Override
 	public edge_data removeEdge(int src, int dest) {
-		// TODO Auto-generated method stub
-		return null;
+		node_data source = indexs.get(src); 
+		LinkedList<edge_data> edges = graph.get(source);
+		edge_data output = null;
+		for(edge_data e : edges) {
+			if(e.getDest()==dest) {
+				output = e;
+				edges.remove(e);
+			}	
+		}
+		changePreform++;
+		numOfEdges--;
+		return output;
 	}
 
 	@Override
 	public int nodeSize() {
-		// TODO Auto-generated method stub
-		return 0;
+		return numOfVertex;
 	}
 
 	@Override
 	public int edgeSize() {
-		// TODO Auto-generated method stub
-		return 0;
+		return numOfEdges;
 	}
 
 	@Override
 	public int getMC() {
-		int modeCounter = 0;
-		modeCounter++;
-		return modeCounter;
+		return changePreform;
 	}
+	
+	
+	
+}	
 
-}
+	
