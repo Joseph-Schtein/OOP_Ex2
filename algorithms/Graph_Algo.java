@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -42,8 +43,8 @@ public class Graph_Algo implements graph_algorithms{
 	}
 
 	@Override
-	public void init(String file_name) {
-	/*	graph fromFile = new DGraph();
+	public void init(String file_name) throws IOException {
+		graph fromFile = new DGraph();
 		String line = "";
 		boolean firstLine = true;
 		try {
@@ -58,12 +59,28 @@ public class Graph_Algo implements graph_algorithms{
 				
 				if(!firstLine) {
 					int cumma = line.indexOf(',');
-					String src =  line.substring(0, cumma);
-					int sou = Integer.parseInt(src);
-					node_data source = fromFile.getNode(sou);
-					for(int i = cumma+2; i < str.length ; i++) {
-						if(line.charAt(i) != '(' && line.charAt(i) != ',' && line.charAt(i) !=')') {
-							
+					String sou =  line.substring(0, cumma);
+					int src = Integer.parseInt(sou);
+					node_data source = fromFile.getNode(src);
+					boolean startEdge = false;
+					int i = cumma+1;
+					while(i < line.length()) {
+						if(line.charAt(i) == '(') {
+							startEdge = true;
+							i++;
+						}
+						else if(line.charAt(i) == ')') {
+							startEdge = false;
+							i++;
+						}
+						
+						else if(line.charAt(i) == ')'){
+							int separate = line.indexOf(',');
+							int endBrackets = line.indexOf(')');
+							int dest = Integer.parseInt(line.substring(i,separate));
+							int w = Integer.parseInt(line.substring(separate+1,endBrackets));
+							fromFile.connect(src, dest, w);
+							i = endBrackets;
 						}
 					}
 				}
@@ -76,7 +93,7 @@ public class Graph_Algo implements graph_algorithms{
 			e.printStackTrace();
 		}
 	}
-	*/
+	
 	@Override
 	public void save(String file_name) {
 		LinkedList<node_data> trans = (LinkedList<node_data>) algo.getV();
@@ -289,5 +306,5 @@ public class Graph_Algo implements graph_algorithms{
 			v.setWeight(Double.MAX_VALUE);
 		}
 	}
-
-}
+}	
+	
