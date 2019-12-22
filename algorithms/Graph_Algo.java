@@ -2,16 +2,25 @@ package algorithms;
 
 
 import java.awt.Container;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+
 import dataStructure.DGraph;
+import dataStructure.Vertex;
 import dataStructure.edge_data;
 import dataStructure.graph;
 import dataStructure.node_data;
-import javafx.geometry.Point3D;
+import utils.Point3D;
+
 /**
  * This empty class represents the set of graph-theory algorithms
  * which should be implemented as part of Ex2 - Do edit this class.
@@ -20,9 +29,10 @@ import javafx.geometry.Point3D;
  */
 public class Graph_Algo implements graph_algorithms{
 	
-	private  graph algo;
+	private graph algo;
 	
 	public Graph_Algo() {
+		algo = new DGraph();
 		
 	}
 	
@@ -33,14 +43,90 @@ public class Graph_Algo implements graph_algorithms{
 
 	@Override
 	public void init(String file_name) {
-		// TODO Auto-generated method stub
+	/*	graph fromFile = new DGraph();
+		String line = "";
+		boolean firstLine = true;
+		try {
+			
+			BufferedReader reader = new BufferedReader(new FileReader(file_name));			
+			while((line = reader.readLine())!= null) {
+				String[] str = line.split(",");	
+				for(int i = 0; i < str.length && firstLine; i++) {
+					node_data toAdd = new Vertex(Integer.parseInt(str[i]),Math.random()*10,Math.random()*10);
+					fromFile.addNode(toAdd);
+				}
+				
+				if(!firstLine) {
+					int cumma = line.indexOf(',');
+					String src =  line.substring(0, cumma);
+					int sou = Integer.parseInt(src);
+					node_data source = fromFile.getNode(sou);
+					for(int i = cumma+2; i < str.length ; i++) {
+						if(line.charAt(i) != '(' && line.charAt(i) != ',' && line.charAt(i) !=')') {
+							
+						}
+					}
+				}
+				
+				firstLine = false;
+			} 
+		}
 		
+		catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
 	}
-
+	*/
 	@Override
 	public void save(String file_name) {
-		// TODO Auto-generated method stub
+		LinkedList<node_data> trans = (LinkedList<node_data>) algo.getV();
+		StringBuilder stf = new StringBuilder();
+		Iterator<node_data> iter1 = trans.iterator();
+		while(iter1.hasNext()) {
+			node_data next = iter1.next();
+			stf.append(next.getKey());
+			if(iter1.hasNext())
+				stf.append(',');	
+			
+			else
+				stf.append('\n');
+		}
 		
+		iter1 = trans.iterator();
+		
+		while(iter1.hasNext()) {
+			node_data nextNode = iter1.next();
+			stf.append(nextNode.getKey());
+			LinkedList<edge_data> source = (LinkedList<edge_data>) algo.getE(nextNode.getKey());
+			Iterator<edge_data> iter2 = source.iterator();
+			while(iter2.hasNext()) {
+				edge_data nextEdge = iter2.next();
+				stf.append(',');
+				stf.append('(');
+				stf.append(nextEdge.getDest());
+				stf.append(',');
+				stf.append(nextEdge.getWeight());
+				stf.append(')');
+				
+				if(!iter2.hasNext()) {	
+					stf.append('\n');
+				}
+			}
+			
+		}
+		
+		
+		try{
+			
+			PrintWriter pw = new PrintWriter(new File(file_name));//create the file it self
+			pw.write(stf.toString());
+			pw.close();
+		} 
+		
+		catch (FileNotFoundException e){
+			e.printStackTrace();
+			return;
+		}
 	}
 
 	@Override
@@ -96,28 +182,27 @@ public class Graph_Algo implements graph_algorithms{
 		double output=Double.MAX_VALUE;
 		
 		node_data source = algo.getNode(src);
-		source.setTag(1);
 		LinkedList<edge_data> srcEdge = (LinkedList<edge_data>) algo.getE(src);
 		for(edge_data e: srcEdge) {
 			node_data next = algo.getNode(e.getDest());
-			if(next.getTag()==0) {	
-				if(source.getWeight() == Double.MAX_VALUE) 
-					source.setWeight(0);
 				
-				double test = e.getWeight()+source.getWeight();
+			if(source.getWeight() == Double.MAX_VALUE) 
+				source.setWeight(0);
 				
-				if(e.getWeight()+source.getWeight()< next.getWeight())
-					next.setWeight(e.getWeight()+source.getWeight());
+			double test = e.getWeight()+source.getWeight();
+				
+			if(e.getWeight()+source.getWeight()< next.getWeight())
+				next.setWeight(e.getWeight()+source.getWeight());
 			
-				double tmp = shortestPathDist(e.getDest(), dest);
-				if(tmp < output && tmp>=test) {
-					output = tmp;
-					String n = ((Integer)source.getKey()).toString();
-					next.setInfo(n);
-				}
+			double tmp = shortestPathDist(e.getDest(), dest);
+			if(tmp < output && tmp>=test) {
+				output = tmp;
+				String n = ((Integer)source.getKey()).toString();
+				next.setInfo(n);
+				
 			}	
 		}
-		source.setTag(2);
+		
 		
 		return output;
 	}
@@ -148,53 +233,29 @@ public class Graph_Algo implements graph_algorithms{
 
 	@Override
 	public List<node_data> TSP(List<Integer> targets) {
-		LinkedList<node_data> output = new LinkedList<>();
-		Iterator<Integer> iter = targets.iterator();
+		return null;
 		
-		if(targets.size()>=2) {
-			int source = (int)iter.next();
-			while(iter.hasNext()) {
-				int nextDest = (int)iter.next();
-				LinkedList<node_data> tmp = (LinkedList<node_data>) shortestPath(source, nextDest);
-				reSet();
-				for(node_data v : tmp) { 
-					output.addLast(v);
-				}
-				
-				source = nextDest;
-			}
-		}
-		
-		else {
-			return null;
-		}
-		node_data current  = output.getFirst();
-		int index = 1;
-		while(index < output.size() - targets.size()+1) {
-			node_data next = output.get(index);
-			if(current.getKey() == next.getKey()) {
-				output.remove(next);
-			}
-			current = next;
-			index++;
-		}
-		return output;
 	}
 
 	@Override
 	public graph copy() {
-	/*	graph clone = new DGraph();
+		graph clone = new DGraph();
 		LinkedList<node_data> tmp = (LinkedList<node_data>) algo.getV();
 		
 		for(node_data ver : tmp) {
 			int key = ver.getKey();
 			Point3D place = ver.getLocation();
-			clone.addNode();
+			node_data toAdd = new Vertex(key,place.x(),place.y());
+			clone.addNode(toAdd);
 		}
 		
-		
-		*/
-		return null;
+		for(node_data ver : tmp) {
+			Collection<edge_data> source = algo.getE(ver.getKey());
+			for(edge_data e : source) {
+				clone.connect(e.getSrc(), e.getDest(), e.getWeight());
+			}
+		}
+		return clone;
 	}
 	
 	private int DFS(graph check,int start,int visited) {
