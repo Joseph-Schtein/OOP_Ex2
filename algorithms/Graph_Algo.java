@@ -59,39 +59,33 @@ public class Graph_Algo implements graph_algorithms{
 				
 				if(!firstLine) {
 					int cumma = line.indexOf(',');
-					String sou =  line.substring(0, cumma);
-					int src = Integer.parseInt(sou);
-					node_data source = fromFile.getNode(src);
-					boolean startEdge = false;
-					int i = cumma+1;
-					while(i < line.length()) {
-						if(line.charAt(i) == '(') {
-							startEdge = true;
-							i++;
-						}
-						else if(line.charAt(i) == ')') {
-							startEdge = false;
-							i++;
-						}
-						
-						else if(line.charAt(i) == ')'){
+					if(cumma!=-1){	
+						String sou =  line.substring(0, cumma);
+						int src = Integer.parseInt(sou);
+						node_data source = fromFile.getNode(src);
+						boolean startEdge = false;
+						line = line.substring(cumma+1);
+						while(0 < line.length()) {	
+							int start = line.indexOf('(');
 							int separate = line.indexOf(',');
-							int endBrackets = line.indexOf(')');
-							int dest = Integer.parseInt(line.substring(i,separate));
-							int w = Integer.parseInt(line.substring(separate+1,endBrackets));
+							int end = line.indexOf(')');
+							int dest = Integer.parseInt(line.substring(start+1,separate));
+							double w = Double.parseDouble(line.substring(separate+1,end));
 							fromFile.connect(src, dest, w);
-							i = endBrackets;
+							if(end+1 != line.length())
+								line = line.substring(end+2);
+							
+							else
+								line = line.substring(end+1);
 						}
 					}
-				}
-				
+				}	
 				firstLine = false;
-			} 
-		}
-		
+			}	
+		}		
 		catch (FileNotFoundException e) {
 			e.printStackTrace();
-		}
+		}				
 	}
 	
 	@Override
@@ -116,18 +110,24 @@ public class Graph_Algo implements graph_algorithms{
 			stf.append(nextNode.getKey());
 			LinkedList<edge_data> source = (LinkedList<edge_data>) algo.getE(nextNode.getKey());
 			Iterator<edge_data> iter2 = source.iterator();
-			while(iter2.hasNext()) {
-				edge_data nextEdge = iter2.next();
-				stf.append(',');
-				stf.append('(');
-				stf.append(nextEdge.getDest());
-				stf.append(',');
-				stf.append(nextEdge.getWeight());
-				stf.append(')');
+			if(iter2.hasNext()) {
+				while(iter2.hasNext()){
+					edge_data nextEdge = iter2.next();
+					stf.append(',');
+					stf.append('(');
+					stf.append(nextEdge.getDest());
+					stf.append(',');
+					stf.append(nextEdge.getWeight());
+					stf.append(')');
 				
-				if(!iter2.hasNext()) {	
-					stf.append('\n');
+					if(!iter2.hasNext()) {	
+						stf.append('\n');
+					}
 				}
+			}
+			
+			else{
+				stf.append('\n');
 			}
 			
 		}
@@ -199,28 +199,29 @@ public class Graph_Algo implements graph_algorithms{
 		double output=Double.MAX_VALUE;
 		
 		node_data source = algo.getNode(src);
+		source.setTag(2);
 		LinkedList<edge_data> srcEdge = (LinkedList<edge_data>) algo.getE(src);
 		for(edge_data e: srcEdge) {
 			node_data next = algo.getNode(e.getDest());
+			if(source.getTag() == 0) {	
+				if(source.getWeight() == Double.MAX_VALUE) 
+					source.setWeight(0);
 				
-			if(source.getWeight() == Double.MAX_VALUE) 
-				source.setWeight(0);
+				double test = e.getWeight()+source.getWeight();
 				
-			double test = e.getWeight()+source.getWeight();
-				
-			if(e.getWeight()+source.getWeight()< next.getWeight())
-				next.setWeight(e.getWeight()+source.getWeight());
+				if(e.getWeight()+source.getWeight()< next.getWeight())
+					next.setWeight(e.getWeight()+source.getWeight());
 			
-			double tmp = shortestPathDist(e.getDest(), dest);
-			if(tmp < output && tmp>=test) {
-				output = tmp;
-				String n = ((Integer)source.getKey()).toString();
-				next.setInfo(n);
-				
+				double tmp = shortestPathDist(e.getDest(), dest);
+				if(tmp < output && tmp>=test) {
+					output = tmp;
+					String n = ((Integer)source.getKey()).toString();
+					next.setInfo(n);
+				}
 			}	
 		}
 		
-		
+		source.setTag(0);
 		return output;
 	}
 
@@ -250,7 +251,21 @@ public class Graph_Algo implements graph_algorithms{
 
 	@Override
 	public List<node_data> TSP(List<Integer> targets) {
-		return null;
+		List<node_data> output = new LinkedList<>();
+		List<node_data> tmp = new LinkedList<>();
+		int min = Math.min(targets.size()*targets.size(), 100);
+		
+		for(int i = 0; i < min; i++) {
+			int previous = targets.get(0);
+			Iterator<Integer> iter = targets.iterator();
+			iter.next();
+			while(iter.hasNext()) {
+				int next = (int) iter.next();
+				tmp = shortestPath(previous, next);
+				
+			}
+		}
+		return output;
 		
 	}
 
