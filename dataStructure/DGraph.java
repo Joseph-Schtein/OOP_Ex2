@@ -16,6 +16,7 @@ public class DGraph implements graph{
     private int numOfVertex;
     private int numOfEdges;
 	private int changePreform;
+	private int rememKey; 
     
 	public DGraph(){
 		graph = new HashMap<node_data, LinkedList<edge_data>>();
@@ -24,6 +25,7 @@ public class DGraph implements graph{
 		numOfVertex = 0;
 		numOfEdges = 0;
 		changePreform = 0;
+		rememKey = 0;
 	}
 
 	@Override
@@ -52,18 +54,19 @@ public class DGraph implements graph{
 		VertexSet.addFirst(n);
 		numOfVertex++;
 		changePreform++;
+		rememKey =n.getKey();
 	}
 
 	@Override
 	public void connect(int src, int dest, double w) {
 		node_data source = indexs.get(src);
 		node_data destination = indexs.get(dest);
-		
 		LinkedList<edge_data> edges = graph.get(source);
 		edge_data newEdge = new Edge(source, destination, w);
 		edges.addFirst(newEdge);
 		numOfEdges++;
 		changePreform++;
+			
 	}
 
 	@Override
@@ -85,7 +88,7 @@ public class DGraph implements graph{
 		VertexSet.remove(toRemove);
 		LinkedList<edge_data> tmp = graph.remove(toRemove);
 		numOfEdges = numOfEdges - tmp.size();
-		changePreform = changePreform+tmp.size(); 
+		changePreform = changePreform+tmp.size()+1; 
 		numOfVertex--;
 		
 		for(node_data ver : VertexSet) {		
