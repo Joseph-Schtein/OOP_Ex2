@@ -1,6 +1,6 @@
 package algorithms;
 
-
+import java.util.*;
 import java.awt.Container;
 import java.io.BufferedReader;
 import java.io.File;
@@ -9,11 +9,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+//import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils.Collections;
 
 import dataStructure.DGraph;
 import dataStructure.Vertex;
@@ -31,6 +32,7 @@ import utils.Point3D;
 public class Graph_Algo implements graph_algorithms{
 	
 	private graph algo;
+	private boolean reset = false;
 	
 	public Graph_Algo() {
 		algo = new DGraph();
@@ -158,8 +160,10 @@ public class Graph_Algo implements graph_algorithms{
 		}
 		
 		int visitedAll= DFS(algo,start.getKey(), 0);
-		if(visitedAll != algo.nodeSize())
+		if(visitedAll != algo.nodeSize()) {
+			reSet();
 			return false;
+		}
 		
 		Collection<node_data> ver = algo.getV(); 
 		graph reverse = new DGraph();
@@ -184,7 +188,7 @@ public class Graph_Algo implements graph_algorithms{
 		for(node_data v : ver) {
 			v.setTag(0);
 		}
-		
+		reSet();
 		return true;
 	}
 
@@ -203,7 +207,7 @@ public class Graph_Algo implements graph_algorithms{
 		LinkedList<edge_data> srcEdge = (LinkedList<edge_data>) algo.getE(src);
 		for(edge_data e: srcEdge) {
 			node_data next = algo.getNode(e.getDest());
-			if(source.getTag() == 0) {	
+			if(next.getTag() == 0) {	
 				if(source.getWeight() == Double.MAX_VALUE) 
 					source.setWeight(0);
 				
@@ -213,7 +217,7 @@ public class Graph_Algo implements graph_algorithms{
 					next.setWeight(e.getWeight()+source.getWeight());
 			
 				double tmp = shortestPathDist(e.getDest(), dest);
-				if(tmp < output && tmp>=test) {
+				if(tmp <= output && tmp>=test) {
 					output = tmp;
 					String n = ((Integer)source.getKey()).toString();
 					next.setInfo(n);
@@ -246,27 +250,93 @@ public class Graph_Algo implements graph_algorithms{
 			return output;
 		}
 		
-		throw new RuntimeException("there is no path for those source destnation");
+		return null;
 	}
 
 	@Override
 	public List<node_data> TSP(List<Integer> targets) {
-		List<node_data> output = new LinkedList<>();
-		List<node_data> tmp = new LinkedList<>();
-		int min = Math.min(targets.size()*targets.size(), 100);
-		
-		for(int i = 0; i < min; i++) {
-			int previous = targets.get(0);
-			Iterator<Integer> iter = targets.iterator();
-			iter.next();
-			while(iter.hasNext()) {
-				int next = (int) iter.next();
-				tmp = shortestPath(previous, next);
-				
-			}
+		reSet();
+		LinkedList<node_data> test = new LinkedList<>();
+		for(Integer Int: targets) {
+			node_data ad = algo.getNode(Int);
+			test.add(ad);
 		}
-		return output;
 		
+		LinkedList<node_data> tmp = new LinkedList<>();
+		TSPSolution solution = new TSPSolution();
+		boolean getNull = false;
+		double distance = 0;
+		
+		for(int i = 1; (i <= 100 && i <=targets.size()*targets.size()) || (i<=1000 && solution.path.size()==0); i++) {
+			if(i!=1) {
+				Collections.shuffle(targets);
+			}
+			if(getNull = true)
+				getNull = false;
+			
+			Iterator<Integer> iter = targets.iterator();
+			if(targets.size()>=2) {
+				int source = (int)iter.next();
+				while(iter.hasNext() && !getNull) {
+					int nextDest = (int)iter.next();
+					tmp = (LinkedList<node_data>) shortestPath(source, nextDest);
+					
+					if(tmp!=null && tmp.getLast().getWeight()!=Double.MAX_VALUE) {
+						
+						source = nextDest;
+						
+						node_data src = algo.getNode(source);
+						if(distance < src.getWeight()+solution.getDistance())
+							distance = src.getWeight()+solution.getDistance();
+						
+						if(solution.getDistance() < distance) {
+							solution.setTmpPath(tmp);
+							solution.setDistance(distance);	
+						}
+						
+						reSet();	
+					}
+					
+					else {
+						getNull = true;
+						distance =0;
+						reSet();
+						solution.setTmpPath(null);
+						solution.distance = 0;
+						}	
+					}
+				
+					if(solution.tmpPath!=null && solution.tmpPath.containsAll(test))
+						solution.setPath(solution.tmpPath);
+						solution.setTmpPath(null);
+						solution.setDistance(0.0);
+					}
+				
+				else {
+					return null;
+				}	
+			}
+				
+			
+		
+
+	
+		if(solution.path!=null && solution.path.size()>1) {
+			node_data current  = ((LinkedList<node_data>) solution.path).getFirst();
+			int index = 1;
+			while(index < solution.path.size()) {
+				node_data next = solution.path.get(index);
+				if(current.getKey() == next.getKey()) {
+					solution.path.remove(next);
+				}
+			
+			
+				current = next;
+				index++;
+			}
+			
+		}	
+		return solution.getPath();
 	}
 
 	@Override
@@ -319,6 +389,51 @@ public class Graph_Algo implements graph_algorithms{
 			v.setTag(0);
 			v.setInfo("");
 			v.setWeight(Double.MAX_VALUE);
+		}
+	}
+	
+	private class TSPSolution{
+		
+		private LinkedList<node_data> path;
+		private LinkedList<node_data> tmpPath;
+		private double distance;
+		
+		public TSPSolution() {
+			path = new LinkedList<>();
+			tmpPath = new LinkedList<>();
+			distance = 0;
+		}
+
+		public LinkedList<node_data> getPath() {
+			return path;
+		}
+
+		public void setPath(List<node_data> output) {
+			if(output!=null)
+				this.path.addAll(output);
+			
+			else
+				this.path.removeAll(path);
+		}
+
+		public double getDistance() {
+			return distance;
+		}
+
+		public void setDistance(double d) {
+			this.distance = d;
+		}
+
+		public LinkedList<node_data> getTmpPath() {
+			return tmpPath;
+		}
+
+		public void setTmpPath(LinkedList<node_data> tmpPath) {
+			if(tmpPath!=null)
+				this.tmpPath.addAll(tmpPath);
+			
+			else
+				this.tmpPath.removeAll(this.tmpPath);
 		}
 	}
 }	
