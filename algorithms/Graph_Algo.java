@@ -307,9 +307,12 @@ public class Graph_Algo implements graph_algorithms{
 					}
 				
 					if(solution.tmpPath!=null && solution.tmpPath.containsAll(test))
-						solution.setPath(solution.tmpPath);
-						solution.setTmpPath(null);
-						solution.setDistance(0.0);
+						if(distance < solution.getDistance() || solution.path.size()==0) {	
+							solution.setPath(solution.tmpPath);
+							solution.setTmpPath(null);
+							solution.setDistance(0.0);
+							distance = 0;
+						}	
 					}
 				
 				else {
