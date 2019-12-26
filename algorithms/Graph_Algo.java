@@ -46,25 +46,27 @@ public class Graph_Algo implements graph_algorithms{
 
 	@Override
 	public void init(String file_name) throws IOException {
-		graph fromFile = new DGraph();
 		String line = "";
 		boolean firstLine = true;
 		try {
 			
 			BufferedReader reader = new BufferedReader(new FileReader(file_name));			
 			while((line = reader.readLine())!= null) {
-				String[] str = line.split(",");	
-				for(int i = 0; i < str.length && firstLine; i++) {
-					node_data toAdd = new Vertex(Integer.parseInt(str[i]),Math.random()*10,Math.random()*10);
-					fromFile.addNode(toAdd);
+				if(firstLine) {
+					line = line.replace("(", "");	
+					line = line.replace(")", "");
+					String[] str = line.split(",");
+					for(int i = 0; i < str.length && firstLine; i=i+3) {
+						node_data toAdd = new Vertex(Integer.parseInt(str[i]),Double.parseDouble(str[i+1]),Double.parseDouble(str[i+2]));
+						algo.addNode(toAdd);
+					}
 				}
-				
 				if(!firstLine) {
 					int cumma = line.indexOf(',');
 					if(cumma!=-1){	
 						String sou =  line.substring(0, cumma);
 						int src = Integer.parseInt(sou);
-						node_data source = fromFile.getNode(src);
+						node_data source = algo.getNode(src);
 						boolean startEdge = false;
 						line = line.substring(cumma+1);
 						while(0 < line.length()) {	
@@ -73,7 +75,7 @@ public class Graph_Algo implements graph_algorithms{
 							int end = line.indexOf(')');
 							int dest = Integer.parseInt(line.substring(start+1,separate));
 							double w = Double.parseDouble(line.substring(separate+1,end));
-							fromFile.connect(src, dest, w);
+							algo.connect(src, dest, w);
 							if(end+1 != line.length())
 								line = line.substring(end+2);
 							
@@ -97,7 +99,14 @@ public class Graph_Algo implements graph_algorithms{
 		Iterator<node_data> iter1 = trans.iterator();
 		while(iter1.hasNext()) {
 			node_data next = iter1.next();
+			Point3D tmpNext = next.getLocation();
+			stf.append('(');
 			stf.append(next.getKey());
+			stf.append(',');
+			stf.append(tmpNext.x());
+			stf.append(',');
+			stf.append(tmpNext.y());
+			stf.append(')');
 			if(iter1.hasNext())
 				stf.append(',');	
 			
